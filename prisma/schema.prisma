@@ -1,0 +1,51 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+
+
+}
+
+model User {
+    id          Int        @id @default (autoincrement())
+    username    String     @unique
+    email       String     @unique
+    password    String     
+    createdAt   DateTime   @default(now())
+    submissions Submission[]
+}
+
+model Problem {
+    id           Int        @id @default (autoincrement()) 
+    title        String 
+    slug         String     @unique    
+    description  String
+    difficulty   String
+    constraints  String?
+    inputFormat  String?
+    outputFormat String?
+    sampleInput  String?
+    sampleOutput String?
+    tags         String[]
+    testCases    Json
+    createdAt   DateTime  @default(now())
+    submissions Submission[]
+}
+
+model Submission {
+    
+    id           Int        @id @default(autoincrement())
+    code         String      
+    language     String
+    status       String
+    runtime      String?
+    createdAt    DateTime    @default(now())
+
+    userId       Int
+    problemId    Int
+
+    user User       @relation(fields: [userId], references:[id])
+    problem Problem @relation(fields:[problemId], references:[id])
+}
