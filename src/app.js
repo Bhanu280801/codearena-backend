@@ -6,6 +6,8 @@ const authRoutes = require('./routes/authRoutes')
 
 const problemRoutes = require('./routes/problemRoutes')
 
+const submissionRoutes = require("./routes/submissionRoutes")
+
 const app = express();
 
 app.use(cors())
@@ -16,7 +18,10 @@ app.use('/auth',authRoutes)
 
 app.use('/problems', problemRoutes)
 
+app.use("/submissions" , submissionRoutes)
+
 app.get("/",(req,res)=>{
+
     res.send("Codearena Backend API Running")
 })
 

@@ -37,10 +37,12 @@ model Problem {
 model Submission {
     
     id           Int        @id @default(autoincrement())
-    code         String      
+    sourceCode   String      
     language     String
-    status       String
+    status       String     @default("pending")
+    verdict      String?
     runtime      String?
+    memory       String?
     createdAt    DateTime    @default(now())
 
     userId       Int
