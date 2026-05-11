@@ -1,5 +1,7 @@
 const prisma = require("../config/db")
 
+const submissionQueue = require("../jobs/submissionQueue")
+
 const createSubmission = async(req , res)=>{
     try {
         
@@ -25,12 +27,7 @@ const createSubmission = async(req , res)=>{
         }
 
         
-        console.log({
-  sourceCode,
-  language,
-  userId,
-  problemId
-});
+       
         const submission = await prisma.submission.create({
             data :{
                 sourceCode,
@@ -40,6 +37,12 @@ const createSubmission = async(req , res)=>{
                 status : "pending"
             }
         })
+
+         await submissionQueue.add("processSubmission",{
+
+            submissionId : submission.id
+        })
+        console.log("Job added to queue");
 
         return res.status(201).json({
             message : "Submission created sucessfully"
@@ -71,6 +74,8 @@ const getMySubmissions = async(req , res)=>{
                 createdAt :'desc'
             }
         })
+
+       
 
         return res.status(200).json(submissions)
 
