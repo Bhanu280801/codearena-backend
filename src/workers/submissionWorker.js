@@ -1,5 +1,7 @@
 require("dotenv").config();
 
+const { executeJavaScript } = require("../utils/codeExecuter");
+
 const { Worker } = require("bullmq");
 
 const redis = require("../config/redis");
@@ -9,27 +11,66 @@ const worker = new Worker(
   "submissionQueue",
 
   async (job) => {
+
     console.log("Processing submission", job.data);
 
     const { submissionId } = job.data;
 
-    await new Promise((resolve) =>
-      setTimeout(resolve, 3000)
-    );
+    const submission =
+      await prisma.submission.findUnique({
+        where: {
+          id: submissionId
+        },
+        include: {
+          problem: true
+        }
+      });
 
-    await prisma.submission.update({
-      where: {
-        id: submissionId
-      },
-      data: {
-        status: "completed",
-        verdict: "accepted",
-        runtime: "0.12s",
-        memory: "64mb"
-      }
-    });
+    const code = submission.sourceCode;
 
-    console.log(`Submission ${submissionId} processed`);
+    const expectedOutput =
+      submission.problem.testCases[0].output;
+
+    try {
+
+      const actualOutput =
+        await executeJavaScript(code);
+
+      const verdict =
+        actualOutput === expectedOutput
+          ? "accepted"
+          : "wrong answer";
+
+      await prisma.submission.update({
+        where: {
+          id: submissionId
+        },
+        data: {
+          status: "completed",
+          verdict,
+          runtime: "0.12s",
+          memory: "64mb"
+        }
+      });
+
+      console.log(
+        `Submission ${submissionId} ${verdict}`
+      );
+
+    } catch (error) {
+
+      await prisma.submission.update({
+        where: {
+          id: submissionId
+        },
+        data: {
+          status: "completed",
+          verdict: "runtime error"
+        }
+      });
+
+      console.log("Execution error:", error);
+    }
   },
 
   {
