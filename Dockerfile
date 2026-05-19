@@ -10,11 +10,9 @@ COPY package*.json ./
 
 RUN npm ci --omit=dev
 
-COPY prisma ./prisma
+COPY . .
 
 RUN npx prisma generate
-
-COPY src ./src
 
 ENV NODE_ENV=production
 
