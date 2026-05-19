@@ -28,9 +28,17 @@ const signup = async (req, res) => {
       }
     });
 
+    const safeUser = {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+      createdAt: user.createdAt
+    };
+
     return res.status(201).json({
       message: "User created successfully",
-      user
+      user: safeUser
     });
   } catch (error) {
     console.error(error);
@@ -63,14 +71,20 @@ const login = async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: user.id },
+      { id: user.id, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
 
     return res.json({
       message: "Login successful",
-      token
+      token,
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role
+      }
     });
   } catch (error) {
     console.error(error);
@@ -91,6 +105,7 @@ const getProfile = async (req, res) => {
         id: true,
         username: true,
         email: true,
+        role: true,
         createdAt: true
       }
     });

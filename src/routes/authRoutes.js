@@ -8,9 +8,10 @@ const {
 } = require("../controllers/authController");
 
 const authMiddleware = require("../middlewares/authMiddleware");
+const { authLimiter } = require("../middlewares/rateLimitMiddleware");
 
-router.post("/signup", signup);
-router.post("/login", login);
+router.post("/signup", authLimiter, signup);
+router.post("/login", authLimiter, login);
 router.get("/profile", authMiddleware, getProfile);
 
 module.exports = router;

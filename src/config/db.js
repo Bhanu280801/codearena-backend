@@ -5,6 +5,7 @@ require("dotenv").config({
 });
 const { PrismaClient } = require("@prisma/client");
 const { PrismaNeon } = require("@prisma/adapter-neon");
+const { PrismaPg } = require("@prisma/adapter-pg");
 const { neonConfig } = require("@neondatabase/serverless");
 const ws = require("ws");
 
@@ -18,7 +19,10 @@ if (!connectionString) {
   );
 }
 
-const adapter = new PrismaNeon({ connectionString });
+const isNeonConnection = connectionString.includes("neon.tech");
+const adapter = isNeonConnection
+  ? new PrismaNeon({ connectionString })
+  : new PrismaPg({ connectionString });
 
 const prisma = new PrismaClient({ adapter });
 

@@ -3,10 +3,12 @@ const router = express.Router();
 
 const submissionController = require("../controllers/submissionController");
 const authMiddleware = require("../middlewares/authMiddleware");
+const { submissionLimiter } = require("../middlewares/rateLimitMiddleware");
 
 router.post(
   "/",
   authMiddleware,
+  submissionLimiter,
   submissionController.createSubmission
 );
 

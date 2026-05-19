@@ -15,8 +15,19 @@ const createProblem =  async(req , res)=>{
             sampleInput,
             sampleOutput,
             tags,
-            testCases
+            testCases,
+            timeLimitMs,
+            memoryLimitMb,
+            executionMode,
+            functionName,
+            isPublished
         }   = req.body
+
+        if (!title || !slug || !description || !difficulty || !Array.isArray(testCases)) {
+            return res.status(400).json({
+                message: "title, slug, description, difficulty and testCases are required"
+            })
+        }
 
         const existingProblem = await prisma.problem.findUnique({
             where : {slug}
@@ -39,8 +50,13 @@ const createProblem =  async(req , res)=>{
             outputFormat,
             sampleInput,
             sampleOutput,
-            tags,
-            testCases
+            tags: tags || [],
+            testCases,
+            timeLimitMs,
+            memoryLimitMb,
+            executionMode,
+            functionName,
+            isPublished
 
             }
         })
@@ -63,7 +79,10 @@ const createProblem =  async(req , res)=>{
 const getAllProblems = async(req , res)=>{
 
     try {
+        const where = req.user && req.user.role === "ADMIN" ? {} : { isPublished: true };
+
         const problems = await prisma.problem.findMany({
+            where,
             orderBy:{
                 createdAt :'desc'
             }
@@ -84,17 +103,20 @@ const getProblemById = async(req , res)=>{
   try{
 
     const {id}  = req.params;
-    const problem = await prisma.problem.findUnique({
+    const problem = await prisma.problem.findFirst({
         where :{
-            id: Number(id)
+            id: Number(id),
+            ...(req.user && req.user.role === "ADMIN" ? {} : { isPublished: true })
         }
     });
 
     if(!problem){
-        return res.status(401).json({
+        return res.status(404).json({
             message  : "Problem not found"
         })
     }
+
+    return res.status(200).json(problem)
 
 
   }catch(error){
@@ -120,11 +142,11 @@ const updateProblem = async(req, res)=>{
             data : req.body
         })
 
-        return res.status(20).json({
+        return res.status(200).json({
 
          message : " Problem updated sucessfully ",
 
-         updateProblem
+         problem: updatedProblem
         })
 
     }catch(error){

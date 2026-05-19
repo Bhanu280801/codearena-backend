@@ -1,11 +1,10 @@
 require("dotenv").config();
 
-const { executeJavaScript } = require("../utils/codeExecuter");
-
 const { Worker } = require("bullmq");
 
 const redis = require("../config/redis");
 const prisma = require("../config/db");
+const { judgeSubmission } = require("../services/judgeService");
 
 const worker = new Worker(
   "submissionQueue",
@@ -26,20 +25,25 @@ const worker = new Worker(
         }
       });
 
-    const code = submission.sourceCode;
-
-    const expectedOutput =
-      submission.problem.testCases[0].output;
+    if (!submission) {
+      throw new Error(`Submission ${submissionId} not found`);
+    }
 
     try {
 
-      const actualOutput =
-        await executeJavaScript(code);
+      await prisma.submission.update({
+        where: {
+          id: submissionId
+        },
+        data: {
+          status: "processing"
+        }
+      });
 
-      const verdict =
-        actualOutput === expectedOutput
-          ? "accepted"
-          : "wrong answer";
+      const result = await judgeSubmission({
+        submission,
+        problem: submission.problem
+      });
 
       await prisma.submission.update({
         where: {
@@ -47,14 +51,17 @@ const worker = new Worker(
         },
         data: {
           status: "completed",
-          verdict,
-          runtime: "0.12s",
-          memory: "64mb"
+          verdict: result.verdict,
+          runtime: result.runtime,
+          memory: "N/A",
+          passedTestCases: result.passedTestCases,
+          totalTestCases: result.totalTestCases,
+          errorMessage: result.error || null
         }
       });
 
       console.log(
-        `Submission ${submissionId} ${verdict}`
+        `Submission ${submissionId} ${result.verdict} (${result.passedTestCases}/${result.totalTestCases})`
       );
 
     } catch (error) {
@@ -65,7 +72,8 @@ const worker = new Worker(
         },
         data: {
           status: "completed",
-          verdict: "runtime error"
+          verdict: "system error",
+          errorMessage: error.message
         }
       });
 

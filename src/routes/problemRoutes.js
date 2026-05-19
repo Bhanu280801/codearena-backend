@@ -8,15 +8,18 @@ const {createProblem,
     updateProblem,
     deleteProblem,
 }                         = require('../controllers/problemController')
+const authMiddleware = require("../middlewares/authMiddleware")
+const adminMiddleware = require("../middlewares/adminMiddleware")
+const optionalAuthMiddleware = require("../middlewares/optionalAuthMiddleware")
 
-router.post("/", createProblem);
+router.post("/", authMiddleware, adminMiddleware, createProblem);
 
-router.get("/", getAllProblems);
+router.get("/", optionalAuthMiddleware, getAllProblems);
 
-router.get("/:id",getProblemById);
+router.get("/:id", optionalAuthMiddleware, getProblemById);
 
-router.put("/:id",updateProblem);
+router.put("/:id", authMiddleware, adminMiddleware, updateProblem);
 
-router.delete("/:id", deleteProblem)
+router.delete("/:id", authMiddleware, adminMiddleware, deleteProblem)
 
 module.exports = router

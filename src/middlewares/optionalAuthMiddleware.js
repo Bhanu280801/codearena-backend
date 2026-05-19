@@ -1,14 +1,12 @@
 const jwt = require("jsonwebtoken");
 const prisma = require("../config/db");
 
-const authMiddleware = async (req, res, next) => {
+const optionalAuthMiddleware = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
 
     if (!authHeader) {
-      return res.status(401).json({
-        message: "No token provided"
-      });
+      return next();
     }
 
     const token = authHeader.startsWith("Bearer ")
@@ -17,7 +15,7 @@ const authMiddleware = async (req, res, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    const user = await prisma.user.findUnique({
+    req.user = await prisma.user.findUnique({
       where: {
         id: decoded.id
       },
@@ -29,20 +27,10 @@ const authMiddleware = async (req, res, next) => {
       }
     });
 
-    if (!user) {
-      return res.status(401).json({
-        message: "Invalid or expired token"
-      });
-    }
-
-    req.user = user;
-
-    next();
+    return next();
   } catch (error) {
-    return res.status(401).json({
-      message: "Invalid or expired token"
-    });
+    return next();
   }
 };
 
-module.exports = authMiddleware;
+module.exports = optionalAuthMiddleware;

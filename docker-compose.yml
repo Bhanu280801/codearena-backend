@@ -1,0 +1,50 @@
+services:
+  api:
+    build: .
+    command: npm start
+    ports:
+      - "5000:5000"
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      JWT_SECRET: ${CODEARENA_JWT_SECRET:-local-development-secret-change-me}
+      DATABASE_URL: postgresql://codearena:codearena@postgres:5432/codearena
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      - postgres
+      - redis
+
+  worker:
+    build: .
+    command: npm run worker
+    environment:
+      NODE_ENV: production
+      JWT_SECRET: ${CODEARENA_JWT_SECRET:-local-development-secret-change-me}
+      DATABASE_URL: postgresql://codearena:codearena@postgres:5432/codearena
+      REDIS_URL: redis://redis:6379
+      USE_DOCKER_SANDBOX: "false"
+    depends_on:
+      - postgres
+      - redis
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: codearena
+      POSTGRES_USER: codearena
+      POSTGRES_PASSWORD: codearena
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  postgres_data:
+  redis_data:

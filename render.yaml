@@ -1,0 +1,38 @@
+services:
+  - type: web
+    name: codearena-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    dockerCommand: npm start
+    healthCheckPath: /
+    preDeployCommand: npm run prisma:deploy
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: USE_DOCKER_SANDBOX
+        value: "false"
+
+  - type: worker
+    name: codearena-worker
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    dockerCommand: npm run worker
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: USE_DOCKER_SANDBOX
+        value: "false"

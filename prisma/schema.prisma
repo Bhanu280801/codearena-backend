@@ -13,8 +13,10 @@ model User {
     username    String     @unique
     email       String     @unique
     password    String     
+    role        String     @default("USER")
     createdAt   DateTime   @default(now())
     submissions Submission[]
+    contests    ContestParticipant[]
 }
 
 model Problem {
@@ -30,8 +32,14 @@ model Problem {
     sampleOutput String?
     tags         String[]
     testCases    Json
+    timeLimitMs  Int       @default(2000)
+    memoryLimitMb Int      @default(128)
+    executionMode String   @default("STDIN")
+    functionName String?
+    isPublished Boolean   @default(true)
     createdAt   DateTime  @default(now())
     submissions Submission[]
+    contests     ContestProblem[]
 }
 
 model Submission {
@@ -43,6 +51,9 @@ model Submission {
     verdict      String?
     runtime      String?
     memory       String?
+    passedTestCases Int?
+    totalTestCases  Int?
+    errorMessage    String?
     createdAt    DateTime    @default(now())
 
     userId       Int
@@ -50,4 +61,43 @@ model Submission {
 
     user User       @relation(fields: [userId], references:[id])
     problem Problem @relation(fields:[problemId], references:[id])
+}
+
+model Contest {
+    id          Int       @id @default(autoincrement())
+    title       String
+    slug        String    @unique
+    description String?
+    startsAt    DateTime
+    endsAt      DateTime
+    isPublished Boolean   @default(false)
+    createdAt   DateTime  @default(now())
+
+    problems     ContestProblem[]
+    participants ContestParticipant[]
+}
+
+model ContestProblem {
+    id        Int     @id @default(autoincrement())
+    contestId Int
+    problemId Int
+    points    Int     @default(100)
+    order     Int     @default(0)
+
+    contest Contest @relation(fields: [contestId], references: [id], onDelete: Cascade)
+    problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+
+    @@unique([contestId, problemId])
+}
+
+model ContestParticipant {
+    id        Int      @id @default(autoincrement())
+    contestId Int
+    userId    Int
+    joinedAt  DateTime @default(now())
+
+    contest Contest @relation(fields: [contestId], references: [id], onDelete: Cascade)
+    user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@unique([contestId, userId])
 }

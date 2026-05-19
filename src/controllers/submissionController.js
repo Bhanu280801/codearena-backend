@@ -12,6 +12,12 @@ const createSubmission = async(req , res)=>{
 
         }   = req.body;
 
+        if (!problemId || !sourceCode || !language) {
+            return res.status(400).json({
+                message: "problemId, sourceCode and language are required"
+            })
+        }
+
         const userId = req.user.id
 
         const problem = await prisma.problem.findUnique({
@@ -31,10 +37,11 @@ const createSubmission = async(req , res)=>{
         const submission = await prisma.submission.create({
             data :{
                 sourceCode,
-                language,
+                language: String(language).toLowerCase(),
                 userId,
                 problemId : Number(problemId),
-                status : "pending"
+                status : "pending",
+                totalTestCases: Array.isArray(problem.testCases) ? problem.testCases.length : null
             }
         })
 
@@ -45,7 +52,8 @@ const createSubmission = async(req , res)=>{
         console.log("Job added to queue");
 
         return res.status(201).json({
-            message : "Submission created sucessfully"
+            message : "Submission created sucessfully",
+            submission
         })
     } catch (error) {
 
