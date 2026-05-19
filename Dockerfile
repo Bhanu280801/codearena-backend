@@ -7,14 +7,17 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 
 COPY package*.json ./
+
 RUN npm ci --omit=dev
 
 COPY prisma ./prisma
-ENV DATABASE_URL=postgresql://codearena:codearena@localhost:5432/codearena
-RUN npm run prisma:generate
+
+RUN npx prisma generate
 
 COPY src ./src
 
 ENV NODE_ENV=production
+
+EXPOSE 3000
 
 CMD ["npm", "start"]
