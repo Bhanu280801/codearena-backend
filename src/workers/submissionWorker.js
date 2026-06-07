@@ -1,10 +1,26 @@
-require("dotenv").config();
+const path = require("path");
+require("dotenv").config({ path: path.resolve(__dirname, "../../.env"), quiet: true });
 
 const { Worker } = require("bullmq");
 
 const redis = require("../config/redis");
 const prisma = require("../config/db");
 const { judgeSubmission } = require("../services/judgeService");
+
+if (!redis) {
+  throw new Error("REDIS_URL is required to start the submission worker");
+}
+
+const formatFailureDetails = (failedTestCase) => {
+  if (!failedTestCase) {
+    return null;
+  }
+
+  return JSON.stringify({
+    type: "failed_test_case",
+    ...failedTestCase
+  });
+};
 
 const worker = new Worker(
   "submissionQueue",
@@ -56,7 +72,7 @@ const worker = new Worker(
           memory: "N/A",
           passedTestCases: result.passedTestCases,
           totalTestCases: result.totalTestCases,
-          errorMessage: result.error || null
+          errorMessage: result.error || formatFailureDetails(result.failedTestCase)
         }
       });
 

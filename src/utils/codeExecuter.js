@@ -63,8 +63,12 @@ const ensureTempDir = () => {
 };
 
 const removeDir = (dirPath) => {
-  if (fs.existsSync(dirPath)) {
-    fs.rmSync(dirPath, { recursive: true, force: true });
+  try {
+    if (fs.existsSync(dirPath)) {
+      fs.rmSync(dirPath, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
+    }
+  } catch (error) {
+    console.warn(`Could not remove temp execution directory ${dirPath}: ${error.message}`);
   }
 };
 
@@ -170,6 +174,10 @@ const executeCode = async ({
   memoryLimitMb = DEFAULT_MEMORY_MB,
   useDocker = process.env.USE_DOCKER_SANDBOX === "true"
 }) => {
+  if (process.env.NODE_ENV === "production" && !useDocker) {
+    throw new Error("USE_DOCKER_SANDBOX must be true for production code execution");
+  }
+
   ensureTempDir();
 
   const normalizedLanguage = normalizeLanguage(language);

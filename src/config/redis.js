@@ -10,8 +10,11 @@ if (redisUrl && redisUrl.startsWith("rediss://")) {
   redisOptions.tls = {};
 }
 
-const redis = new Redis(redisUrl, redisOptions);
+const redis = redisUrl ? new Redis(redisUrl, redisOptions) : null;
 
+if (!redis) {
+    console.warn("REDIS_URL is not set; submission queue is disabled")
+} else {
 redis.on("connect" , ()=>{
     console.log("Redis connected")
 })
@@ -19,5 +22,6 @@ redis.on("connect" , ()=>{
 redis.on("error", (err)=>{
     console.log("Redis error" , err.message)
 })
+}
 
 module.exports = redis

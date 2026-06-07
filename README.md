@@ -63,8 +63,55 @@ npm start
 npm run worker
 npm run prisma:migrate
 npm run prisma:deploy
+npm run prisma:generate
+npm run seed:problems
+npm test
 npm run check
 ```
+
+## Local Development
+
+Run the API and frontend in separate terminals:
+
+```bash
+npm run dev
+cd codearena-frontend
+npm run dev
+```
+
+Seed the function-style starter problems:
+
+```bash
+npm run seed:problems
+```
+
+Local submissions are processed inline unless `USE_SUBMISSION_QUEUE=true` is set. This lets the app work without Redis while developing.
+
+Backend environment variables live in `.env`. Start from `.env.example` and set:
+
+```bash
+PORT=5000
+NODE_ENV=development
+CLIENT_URL=http://localhost:5173,http://127.0.0.1:5173
+USE_SUBMISSION_QUEUE=false
+USE_DOCKER_SANDBOX=false
+```
+
+Frontend environment variables live in `codearena-frontend/.env`. Start from `codearena-frontend/.env.example` and set:
+
+```bash
+VITE_API_URL=http://localhost:5000
+```
+
+## Admin Access
+
+Problem management is available at:
+
+```text
+/admin/problems
+```
+
+The route requires a user with `role = ADMIN`. Update a user in the database when you need admin access locally.
 
 ## Docker
 
@@ -76,9 +123,10 @@ For production sandboxing on Linux workers, set:
 
 ```bash
 USE_DOCKER_SANDBOX=true
+USE_SUBMISSION_QUEUE=true
 ```
 
-The worker process must have Docker available. Keep API and worker as separate deployable services.
+The worker process must have Docker and Redis available. Keep API and worker as separate deployable services. In production, queue failures return a `503` instead of falling back to inline execution, and code execution requires `USE_DOCKER_SANDBOX=true`. Do not expose local, non-Docker code execution to untrusted public users.
 
 ## Main API Groups
 

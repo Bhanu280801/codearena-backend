@@ -19,6 +19,12 @@ router.get(
 );
 
 router.get(
+  "/problem/:problemId",
+  authMiddleware,
+  submissionController.getMySubmissionsByProblem
+);
+
+router.get(
   "/:id",
   authMiddleware,
   submissionController.getSubmissionById

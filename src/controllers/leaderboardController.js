@@ -1,47 +1,33 @@
 const prisma = require("../config/db");
 
 const getGlobalLeaderboard = async (req, res) => {
-  const acceptedSubmissions = await prisma.submission.findMany({
-    where: {
-      verdict: "accepted"
-    },
-    select: {
-      userId: true,
-      problemId: true,
-      user: {
-        select: {
-          id: true,
-          username: true
-        }
-      }
-    },
-    orderBy: {
-      createdAt: "asc"
-    }
-  });
+  try {
+    // Aggregate at the database level to avoid loading all rows into memory
+    const leaderboard = await prisma.$queryRaw`
+      SELECT
+        u.id,
+        u.username,
+        COUNT(DISTINCT s."problemId")::int AS "solvedCount"
+      FROM "Submission" s
+      JOIN "User" u ON s."userId" = u.id
+      WHERE s.verdict = 'accepted'
+      GROUP BY u.id, u.username
+      ORDER BY "solvedCount" DESC
+      LIMIT 100
+    `;
 
-  const rowsByUser = new Map();
-
-  acceptedSubmissions.forEach((submission) => {
-    if (!rowsByUser.has(submission.userId)) {
-      rowsByUser.set(submission.userId, {
-        user: submission.user,
-        solvedProblems: new Set()
-      });
-    }
-
-    rowsByUser.get(submission.userId).solvedProblems.add(submission.problemId);
-  });
-
-  const leaderboard = Array.from(rowsByUser.values())
-    .map((row) => ({
-      user: row.user,
-      solvedCount: row.solvedProblems.size
-    }))
-    .sort((a, b) => b.solvedCount - a.solvedCount)
-    .slice(0, 100);
-
-  return res.status(200).json(leaderboard);
+    return res.status(200).json(
+      leaderboard.map((row) => ({
+        user: { id: row.id, username: row.username },
+        solvedCount: row.solvedCount
+      }))
+    );
+  } catch (error) {
+    console.error("GET LEADERBOARD ERROR:", error);
+    return res.status(500).json({
+      message: error.message
+    });
+  }
 };
 
 module.exports = {

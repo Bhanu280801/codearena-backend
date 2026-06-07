@@ -9,6 +9,8 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy",
     "prisma:generate": "prisma generate",
+    "seed:problems": "node scripts/seedProblems.js",
+    "test": "node scripts/runTests.js",
     "check": "node --check src/server.js && node --check src/workers/submissionWorker.js"
   },
   "keywords": [],

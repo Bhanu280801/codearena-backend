@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Centralized Design System: Variables */
+    
+    /* Backgrounds */
+    --background-primary: 240 10% 3.9%;
+    --background-secondary: 240 5% 8%;
+    
+    /* Text */
+    --text-primary: 0 0% 98%;
+    --text-secondary: 240 5% 64.9%;
+    
+    /* Surface / Cards */
+    --surface-primary: 240 10% 8%;
+    --surface-glass: 240 10% 12%; /* Will be used with opacity */
+
+    /* Core Palette */
+    --primary: 217 91% 60%; /* A sleek futuristic blue */
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+
+    --accent-primary: 280 80% 60%; /* Subtle neon purple */
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
+    
+    /* Radius */
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased selection:bg-primary/30 selection:text-primary-foreground;
+  }
+}
+
+@layer utilities {
+  .glass-panel {
+    @apply bg-surface-glass/40 backdrop-blur-md border border-white/10 shadow-lg;
+  }
+  .glass-card {
+    @apply bg-surface-glass/60 backdrop-blur-sm border border-white/5 hover:border-white/10 transition-colors shadow-md;
+  }
+  .futuristic-gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent;
+  }
+}

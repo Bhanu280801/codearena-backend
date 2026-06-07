@@ -16,8 +16,12 @@ services:
         sync: false
       - key: JWT_SECRET
         sync: false
+      - key: CLIENT_URL
+        sync: false
       - key: USE_DOCKER_SANDBOX
         value: "false"
+      - key: USE_SUBMISSION_QUEUE
+        value: "true"
 
   - type: worker
     name: codearena-worker
@@ -36,3 +40,5 @@ services:
         sync: false
       - key: USE_DOCKER_SANDBOX
         value: "false"
+      - key: USE_SUBMISSION_QUEUE
+        value: "true"

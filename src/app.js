@@ -17,12 +17,35 @@ const { notFoundMiddleware, errorMiddleware } = require("./middlewares/errorMidd
 
 const app = express();
 
+const clientOrigins = (process.env.CLIENT_URL || "http://localhost:5173,http://127.0.0.1:5173")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean)
+
+const isDevelopmentOrigin = (origin) => {
+  if (process.env.NODE_ENV === "production") {
+    return false
+  }
+
+  return /^http:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/.test(origin)
+    || /^http:\/\/(10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3})(:\d+)?$/.test(origin)
+}
+
 app.use(helmet())
-app.use(cors())
+app.use(cors({
+  origin(origin, callback) {
+    if (!origin || clientOrigins.includes(origin) || isDevelopmentOrigin(origin)) {
+      return callback(null, true)
+    }
+
+    return callback(new Error(`Origin ${origin} is not allowed by CORS`))
+  },
+  credentials: true,
+}))
 app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"))
 app.use(generalLimiter)
 
-app.use(express.json())
+app.use(express.json({ limit: "100kb" }))
 
 app.use('/auth',authRoutes)
 
