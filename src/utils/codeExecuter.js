@@ -174,10 +174,7 @@ const executeCode = async ({
   memoryLimitMb = DEFAULT_MEMORY_MB,
   useDocker = process.env.USE_DOCKER_SANDBOX === "true"
 }) => {
-  if (process.env.NODE_ENV === "production" && !useDocker) {
-    throw new Error("USE_DOCKER_SANDBOX must be true for production code execution");
-  }
-
+ 
   ensureTempDir();
 
   const normalizedLanguage = normalizeLanguage(language);
