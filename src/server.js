@@ -10,3 +10,7 @@ app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on port ${PORT}`);
 });
  
+if (process.env.RUN_WORKER === "true") {
+  require("./workers/submissionWorker");
+  console.log("Submission worker started");
+}
